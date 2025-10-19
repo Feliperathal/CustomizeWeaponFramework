@@ -44,9 +44,9 @@ public static class TraitModuleDatabase {
 
         foreach (var moduleDef in TraitToModule.Values) {
             // inject description
-            var description = moduleDef.GetModExtension<TraitModuleExtension>()?.weaponTraitDef.description;
-            if (description != null) {
-                moduleDef.description = description;
+            var traitDef = moduleDef.GetModExtension<TraitModuleExtension>()?.weaponTraitDef;
+            if (traitDef?.description != null) {
+                moduleDef.description = $"{traitDef.description}\n\n{GetTraitEffectLines(traitDef).ToLineList()}";
             }
 
             // inject hyperlinks
@@ -107,12 +107,10 @@ public static class TraitModuleDatabase {
                 $" - {"CWF_UI_AdditionalStoppingPower".Translate()}: {traitDef.additionalStoppingPower.ToStringByStyle(ToStringStyle.FloatOne, ToStringNumberSense.Offset)}");
         }
 
-        // EquipeddOffsets
-        if (!traitDef.equippedStatOffsets.IsNullOrEmpty())
-        {
+        // equippedStat
+        if (!traitDef.equippedStatOffsets.IsNullOrEmpty()) {
             effectLines.AddRange(traitDef.equippedStatOffsets
-                .Select(m =>
-                    $" - {m.stat.LabelCap}: {m.stat.ValueToString(m.value)}"));
+                .Select(m => $" - {m.stat.LabelCap}: {m.stat.ValueToString(m.value)}"));
         }
 
         return effectLines;

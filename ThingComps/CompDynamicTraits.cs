@@ -118,7 +118,7 @@ public class CompDynamicTraits : ThingComp {
             sb.AppendLine(trait.description);
 
             var effectLines = TraitModuleDatabase.GetTraitEffectLines(trait);
-            if (!effectLines.IsNullOrEmpty()) {
+            if (effectLines.Count > 0) {
                 sb.AppendLine(effectLines.ToLineList());
             }
 
@@ -341,8 +341,7 @@ public class CompDynamicTraits : ThingComp {
         }
 
         // === verbs ===
-        var verb = parent.TryGetComp<CompEquippableAbilityReloadable>()?.PrimaryVerb ??
-                   parent.TryGetComp<CompEquippable>()?.PrimaryVerb;
+        var verb = parent.TryGetComp<CompEquippable>()?.PrimaryVerb;
         if (verb == null) return;
 
         AccessTools.Field(typeof(Verb), "cachedBurstShotCount").SetValue(verb, null);
