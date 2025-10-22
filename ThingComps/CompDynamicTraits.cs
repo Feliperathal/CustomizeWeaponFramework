@@ -32,8 +32,7 @@ public class CompDynamicTraits : ThingComp {
 
     public void InstallTrait(Part part, WeaponTraitDef traitDef) {
         if (!_installedTraits.TryAdd(part, traitDef)) {
-            Log.Error(
-                $"[CWF] Trying to install part {traitDef.defName} into already occupied slot {part} on {parent.LabelCap}.");
+            Log.Warning($"[CWF] {traitDef.defName}'s slot {part} on {parent.LabelCap} already occupied.");
             return;
         }
 
@@ -52,7 +51,13 @@ public class CompDynamicTraits : ThingComp {
     //     OnTraitsChanged();
     // }
 
-    // === Stat ===
+    public WeaponTraitDef? GetInstalledTraitFor(Part part) {
+        _installedTraits.TryGetValue(part, out var traitDef);
+        return traitDef;
+    }
+
+    #region Stat
+
     public override float GetStatOffset(StatDef stat) {
         return Traits
             .Sum(traitDef => traitDef.statOffsets.GetStatOffsetFromList(stat));
@@ -64,7 +69,10 @@ public class CompDynamicTraits : ThingComp {
                 => current * traitDef.statFactors.GetStatFactorFromList(stat));
     }
 
-    // === Display ===
+    #endregion
+
+    #region Display
+
     public override void GetStatsExplanation(StatDef stat, StringBuilder sb, string whitespace = "") {
         StringBuilder? stringBuilder = null;
 
@@ -111,34 +119,45 @@ public class CompDynamicTraits : ThingComp {
         sb.AppendLine("CWF_UI_WeaponModules_Desc".Translate());
         sb.AppendLine();
 
-        var traitsList = Traits.ToList();
-        for (var i = 0; i < traitsList.Count; i++) {
-            var trait = traitsList[i];
-            sb.AppendLine(trait.LabelCap.Colorize(ColorLibrary.Green));
-            sb.AppendLine(trait.description);
+        var traitDescriptionBlocks = Traits.Select(trait => {
+            var blockBuilder = new StringBuilder();
+            blockBuilder.AppendLine(trait.LabelCap.Colorize(ColorLibrary.Green));
+            blockBuilder.AppendLine(trait.description);
 
             var effectLines = TraitModuleDatabase.GetTraitEffectLines(trait);
             if (effectLines.Count > 0) {
-                sb.AppendLine(effectLines.ToLineList());
+                blockBuilder.AppendLine(effectLines.ToLineList());
             }
 
-            if (i < traitsList.Count - 1) sb.AppendLine();
-        }
+            return blockBuilder.ToString();
+        });
+
+        sb.Append(traitDescriptionBlocks.ToLineList());
 
         yield return new StatDrawEntry(
             parent.def.IsMeleeWeapon ? StatCategoryDefOf.Weapon_Melee : StatCategoryDefOf.Weapon_Ranged,
             "CWF_UI_WeaponModules".Translate(),
-            traitsList.Select(x => x.label).ToCommaList().CapitalizeFirst(),
+            Traits.Select(x => x.label).ToCommaList().CapitalizeFirst(),
             sb.ToString(),
             1105
         );
     }
 
-    // === Callback ===
+    #endregion
+
+    #region Callback
+
     public override void PostPostMake() {
         base.PostPostMake();
+
         InitializeTraits();
+
+        if (!CreationContext.IsPlayerCrafting) {
+            RandomizeTraits();
+        }
+
         RecalculateAvailableParts();
+        SetupAbility(false);
     }
 
     public override void PostExposeData() {
@@ -152,7 +171,10 @@ public class CompDynamicTraits : ThingComp {
         SetupAbility(true);
     }
 
-    // === Gizmos ===
+    #endregion
+
+    #region Gizmos
+
     public override IEnumerable<Gizmo> CompGetGizmosExtra() {
         foreach (var g in base.CompGetGizmosExtra()) {
             yield return g;
@@ -246,13 +268,10 @@ public class CompDynamicTraits : ThingComp {
         }
     }
 
-    // Public Helper
-    public WeaponTraitDef? GetInstalledTraitFor(Part part) {
-        _installedTraits.TryGetValue(part, out var traitDef);
-        return traitDef;
-    }
+    #endregion
 
-    // === Private Helper ===
+    #region Private Helper
+
     private void InitializeTraits() {
         var defaultTraitsList = Props.defaultWeaponTraitDefs;
         if (defaultTraitsList.IsNullOrEmpty()) return;
@@ -281,15 +300,56 @@ public class CompDynamicTraits : ThingComp {
         SetupAbility(false);
         ClearAllCaches();
 
-        // graphic dirty
+        #region Refresh graphic
+
         if (!parent.TryGetComp<CompDynamicGraphic>(out var compDynamicGraphic)) return;
+
         compDynamicGraphic.Notify_GraphicDirty();
+
         if (parent.Map != null) {
             // ground graphic dirty
             parent.Map.mapDrawer.MapMeshDirty(parent.Position, MapMeshFlagDefOf.Things);
         } else if (parent.ParentHolder is Pawn_EquipmentTracker { pawn: not null } equipmentTracker) {
             // equipment graphic dirty
             equipmentTracker.pawn.Drawer.renderer.SetAllGraphicsDirty();
+        }
+
+        #endregion
+    }
+
+    private void RandomizeTraits() {
+        var settings = LoadedModManager.GetMod<ConfigWindow>().GetSettings<Settings>();
+        if (!settings.randomModulesEnabled) return;
+
+        var allSupportedParts = Props.supportParts;
+        if (allSupportedParts.NullOrEmpty()) return;
+
+        var occupiedParts = _installedTraits.Keys;
+        var availableEmptyParts = allSupportedParts.Except(occupiedParts).ToList();
+        if (availableEmptyParts.NullOrEmpty()) return;
+
+        var modulesToInstallCount = Rand.RangeInclusive(settings.minRandomModules, settings.maxRandomModules);
+        modulesToInstallCount = Mathf.Min(modulesToInstallCount, availableEmptyParts.Count);
+
+        for (var i = 0; i < modulesToInstallCount; i++) {
+            if (!availableEmptyParts.Any()) break;
+
+            var randomPart = availableEmptyParts.RandomElement();
+            availableEmptyParts.Remove(randomPart);
+
+            var compatibleTraits = DefDatabase<WeaponTraitDef>.AllDefs
+                .Where(traitDef => {
+                    if (!traitDef.TryGetPart(out var part) || part != randomPart) return false;
+
+                    return traitDef.TryGetModuleDef(out var moduleDef) &&
+                           TraitModuleDatabase.IsModuleCompatibleWithWeapon(moduleDef, parent.def);
+                })
+                .ToList();
+
+            if (!compatibleTraits.Any()) continue;
+
+            var traitToInstall = compatibleTraits.RandomElement();
+            InstallTrait(randomPart, traitToInstall);
         }
     }
 
@@ -318,6 +378,7 @@ public class CompDynamicTraits : ThingComp {
         // temporary old save check mechanism
         foreach (var installedPart in _installedTraits.Keys) {
             if (_availableParts.Contains(installedPart)) continue;
+
             Log.Warning($"[CWF] Part '{installedPart}' on weapon '{parent.LabelCap}' is no longer available.");
         }
     }
@@ -335,7 +396,7 @@ public class CompDynamicTraits : ThingComp {
     }
 
     private void ClearAllCaches() {
-        // === Stats ===
+        // === stats ===
         foreach (var statDef in DefDatabase<StatDef>.AllDefs) {
             statDef.Worker.ClearCacheForThing(parent);
         }
@@ -344,7 +405,10 @@ public class CompDynamicTraits : ThingComp {
         var verb = parent.TryGetComp<CompEquippable>()?.PrimaryVerb;
         if (verb == null) return;
 
+        // === cached ===
         AccessTools.Field(typeof(Verb), "cachedBurstShotCount").SetValue(verb, null);
         AccessTools.Field(typeof(Verb), "cachedTicksBetweenBurstShots").SetValue(verb, null);
     }
+
+    #endregion
 }
