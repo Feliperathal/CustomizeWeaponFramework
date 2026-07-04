@@ -37,12 +37,13 @@ public class HeaderDrawer(Thing weapon, ModificationSession session, Interaction
                 s => {
                     if (_compRenamable == null) return;
 
-                    if (s.Trim().IsNullOrEmpty() || s.Length > 20) {
+                    var normalizedName = s.Trim();
+                    if (normalizedName.Length > 20) {
                         Messages.Message("NameIsInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
                         return;
                     }
 
-                    _compRenamable.Nickname = s.Trim();
+                    _compRenamable.Nickname = normalizedName;
                 },
                 "Rename".Translate());
             Find.WindowStack.Add(inputModal);

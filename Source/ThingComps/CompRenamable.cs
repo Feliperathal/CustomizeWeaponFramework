@@ -10,17 +10,15 @@ public class CompRenamable : ThingComp {
     public string? Nickname {
         get => _nickname;
         set {
-            if (!value.NullOrEmpty()) _nickname = value;
+            _nickname = value.IsNullOrEmpty() ? null : value;
 
-            if (parent.TryGetComp<CompArt>(out var compArt)) {
+            if (_nickname != null && parent.TryGetComp<CompArt>(out var compArt)) {
                 compArt.Title = value;
             }
         }
     }
 
-    public override string TransformLabel(string label) {
-        return !Nickname.IsNullOrEmpty() ? Nickname : label;
-    }
+    public override string TransformLabel(string label) => Nickname ?? label;
 
     public override void PostExposeData() {
         base.PostExposeData();
