@@ -13,7 +13,7 @@ public class CompRenamable : ThingComp {
             _nickname = value.IsNullOrEmpty() ? null : value;
 
             if (_nickname != null && parent.TryGetComp<CompArt>(out var compArt)) {
-                compArt.Title = value;
+                compArt.Title = _nickname;
             }
         }
     }
