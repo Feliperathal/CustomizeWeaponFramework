@@ -221,11 +221,6 @@ public class ModuleBrowserWindow : Window {
         Widgets.DrawBoxSolid(rect, backgroundColor);
         Widgets.DrawHighlightIfMouseover(rect);
 
-        if (selected) {
-            var accentRect = new Rect(rect.x, rect.y + 4f, 3f, rect.height - 8f);
-            Widgets.DrawBoxSolid(accentRect, new Color(0.35f, 0.8f, 1f));
-        }
-
         var labelRect = new Rect(rect.x + FilterRowPadding, rect.y, rect.width - 44f, rect.height);
         var countRect = new Rect(rect.xMax - 32f, rect.y, 24f, rect.height);
         var labelColor = selected ? Color.white : new Color(0.85f, 0.85f, 0.85f);
