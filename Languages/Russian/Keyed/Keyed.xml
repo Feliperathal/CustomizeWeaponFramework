@@ -48,8 +48,6 @@
   <CWF_Rarity_Rare>Редкая</CWF_Rarity_Rare>
   <CWF_Rarity_Legendary>Легендарная</CWF_Rarity_Legendary>
   <CWF_InputTitle>Ввод</CWF_InputTitle>
-  <CWF_Confirm>Подтвердить</CWF_Confirm>
-  <CWF_Cancel>Отмена</CWF_Cancel>
   <CWF_NotRanged>Сейчас поддерживается только дальнобойное оружие.</CWF_NotRanged>
   <CWF_ConfirmInstallTitle>Подтвердить установку</CWF_ConfirmInstallTitle>
   <CWF_ConfirmInstallBody>Установка {MODULE} также снимет эти модули:\n\n{CONFLICTS}\n\nПродолжить?</CWF_ConfirmInstallBody>

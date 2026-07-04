@@ -22,8 +22,8 @@ public class Dialog_TextInput : Window {
         _currentValue = initialValue;
         _onConfirm = onConfirm;
         _title = title ?? "CWF_InputTitle".Translate();
-        _confirmButtonText = confirmButtonText ?? "CWF_Confirm".Translate();
-        _cancelButtonText = cancelButtonText ?? "CWF_Cancel".Translate();
+        _confirmButtonText = confirmButtonText ?? "Confirm".Translate();
+        _cancelButtonText = cancelButtonText ?? "Cancel".Translate();
 
         forcePause = true;
         closeOnClickedOutside = false; // modal dialog
