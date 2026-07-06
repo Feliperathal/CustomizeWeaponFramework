@@ -12,19 +12,22 @@ public static class Transpiler_Verb_TicksBetweenBurstShots {
     [UsedImplicitly]
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) {
         var codes = new List<CodeInstruction>(instructions);
-        var roundToInt = AccessTools.Method(typeof(Mathf), nameof(Mathf.RoundToInt), new[] { typeof(float) });
+        var roundToInt = AccessTools.Method(typeof(Mathf), nameof(Mathf.RoundToInt), [typeof(float)]);
 
         for (var i = 0; i < codes.Count - 2; i++) {
             if (codes[i].opcode != OpCodes.Ldarg_0 ||
                 codes[i + 1].opcode != OpCodes.Ldloc_0 ||
                 !codes[i + 2].Calls(roundToInt)) continue;
 
-            codes.InsertRange(i, new List<CodeInstruction> {
+            var injected = new List<CodeInstruction> {
                 new(OpCodes.Ldloc_0),
                 new(OpCodes.Ldarg_0),
                 CodeInstruction.Call(typeof(Transpiler_Verb_TicksBetweenBurstShots), nameof(ApplyDynamicMultipliers)),
                 new(OpCodes.Stloc_0)
-            });
+            };
+            injected[0].labels.AddRange(codes[i].labels);
+            codes[i].labels.Clear();
+            codes.InsertRange(i, injected);
             return codes;
         }
 
