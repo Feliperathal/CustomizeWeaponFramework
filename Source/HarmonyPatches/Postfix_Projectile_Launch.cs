@@ -1,7 +1,6 @@
 using JetBrains.Annotations;
 using HarmonyLib;
 using UnityEngine;
-using Verse;
 
 // ReSharper disable InconsistentNaming
 

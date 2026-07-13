@@ -2,7 +2,6 @@ using JetBrains.Annotations;
 using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
-using Verse;
 
 namespace CWF.HarmonyPatches;
 

@@ -1,9 +1,6 @@
 using JetBrains.Annotations;
-using Verse;
 using Verse.AI;
 using Verse.Sound;
-using RimWorld;
-using CWF.Extensions;
 
 namespace CWF;
 
@@ -76,9 +73,9 @@ public class JobDriver_ModifyWeaponHaul : JobDriver {
         finalToil.FailOnCannotTouch(WeaponInd, PathEndMode.Touch);
 
         finalToil.AddEndCondition(() => {
-            if (_modDataList.IsNullOrEmpty()) return JobCondition.Ongoing;
+            if (_modDataList.NullOrEmpty()) return JobCondition.Ongoing;
 
-            return _modDataList
+            return _modDataList!
                 .Where(modData => modData.Type == ModificationType.Install)
                 .Any(modData => pawn.inventory.innerContainer
                     .All(t => t.def != modData.ModuleDef))

@@ -1,7 +1,5 @@
 using JetBrains.Annotations;
-using RimWorld;
 using RimWorld.Utility;
-using Verse;
 using Verse.AI;
 
 // ReSharper disable InconsistentNaming

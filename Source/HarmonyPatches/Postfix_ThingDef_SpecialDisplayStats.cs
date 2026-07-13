@@ -2,8 +2,6 @@ using JetBrains.Annotations;
 using System.Text;
 using HarmonyLib;
 using UnityEngine;
-using RimWorld;
-using Verse;
 
 // ReSharper disable InconsistentNaming
 

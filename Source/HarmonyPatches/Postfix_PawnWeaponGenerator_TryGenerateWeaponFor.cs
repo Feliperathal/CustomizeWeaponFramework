@@ -1,7 +1,5 @@
 using JetBrains.Annotations;
 using HarmonyLib;
-using RimWorld;
-using Verse;
 
 namespace CWF.HarmonyPatches;
 

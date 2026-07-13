@@ -1,6 +1,4 @@
 using UnityEngine;
-using RimWorld;
-using Verse;
 
 namespace CWF;
 

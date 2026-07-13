@@ -1,6 +1,3 @@
-using RimWorld;
-using Verse;
-
 namespace CWF;
 
 public class ModificationData : IExposable {

@@ -1,5 +1,3 @@
-using RimWorld;
-
 // ReSharper disable InconsistentNaming
 
 namespace CWF;

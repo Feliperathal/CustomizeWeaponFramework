@@ -1,5 +1,3 @@
-using Verse;
-
 namespace CWF;
 
 public class Settings : ModSettings {

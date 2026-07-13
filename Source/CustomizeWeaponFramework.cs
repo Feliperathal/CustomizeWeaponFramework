@@ -1,6 +1,7 @@
-﻿using JetBrains.Annotations;
+﻿global using Verse;
+global using RimWorld;
+using JetBrains.Annotations;
 using HarmonyLib;
-using Verse;
 
 namespace CWF;
 

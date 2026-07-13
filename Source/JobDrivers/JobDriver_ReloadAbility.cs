@@ -1,7 +1,5 @@
 using JetBrains.Annotations;
-using Verse;
 using Verse.AI;
-using RimWorld;
 
 namespace CWF;
 

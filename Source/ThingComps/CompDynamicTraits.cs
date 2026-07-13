@@ -1,8 +1,6 @@
 using System.Text;
 using HarmonyLib;
 using UnityEngine;
-using RimWorld;
-using Verse;
 using CWF.Extensions;
 
 namespace CWF;
@@ -151,7 +149,7 @@ public class CompDynamicTraits : ThingComp {
     }
 
     public override string? CompInspectStringExtra() {
-        if (_installedTraits.IsNullOrEmpty()) return null;
+        if (_installedTraits.NullOrEmpty()) return null;
 
         return "CWF_WeaponModules".Translate() + ": " + Traits
             .Select(traitDef => traitDef.label).ToCommaList()
@@ -159,7 +157,7 @@ public class CompDynamicTraits : ThingComp {
     }
 
     public override IEnumerable<StatDrawEntry> SpecialDisplayStats() {
-        if (_installedTraits.IsNullOrEmpty()) yield break;
+        if (_installedTraits.NullOrEmpty()) yield break;
 
         var sb = new StringBuilder();
         sb.AppendLine("CWF_WeaponModules_Desc".Translate());

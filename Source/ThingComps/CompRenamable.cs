@@ -1,7 +1,3 @@
-using RimWorld;
-using Verse;
-using CWF.Extensions;
-
 namespace CWF;
 
 public class CompRenamable : ThingComp {
@@ -10,7 +6,7 @@ public class CompRenamable : ThingComp {
     public string? Nickname {
         get => _nickname;
         set {
-            _nickname = value.IsNullOrEmpty() ? null : value;
+            _nickname = value.NullOrEmpty() ? null : value;
 
             if (_nickname != null && parent.TryGetComp<CompArt>(out var compArt)) {
                 compArt.Title = _nickname;

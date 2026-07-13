@@ -1,5 +1,3 @@
-using Verse;
-
 namespace CWF;
 
 // ReSharper disable once InconsistentNaming

@@ -1,7 +1,3 @@
-using RimWorld;
-using Verse;
-using CWF.Extensions;
-
 namespace CWF;
 
 public static class ModuleDatabase {
@@ -14,7 +10,7 @@ public static class ModuleDatabase {
     internal static void BuildCacheAndInject() {
         foreach (var thingDef in DefDatabase<ThingDef>.AllDefs) {
             // fill weapon caches
-            if (thingDef.IsWeapon && !thingDef.weaponTags.IsNullOrEmpty() && thingDef.race == null &&
+            if (thingDef.IsWeapon && !thingDef.weaponTags.NullOrEmpty() && thingDef.race == null &&
                 !thingDef.IsCorpse) {
                 foreach (var tag in thingDef.weaponTags) {
                     if (!WeaponsByTag.ContainsKey(tag)) {
@@ -29,7 +25,8 @@ public static class ModuleDatabase {
             if (ext == null) continue;
 
             if (ext.weaponTraitDef.defName == Def.DefaultDefName || ext.part.defName == Def.DefaultDefName) {
-                Log.Error($"[CWF] Module '{thingDef.defName}' has an invalid {nameof(TraitModuleExtension)}."); // todo: fixme
+                Log.Error(
+                    $"[CWF] Module '{thingDef.defName}' has an invalid {nameof(TraitModuleExtension)}."); // todo: fixme
                 continue;
             }
 
@@ -78,24 +75,24 @@ public static class ModuleDatabase {
 
         var results = new HashSet<ThingDef>();
 
-        if (!ext.requiredWeaponDefs.IsNullOrEmpty()) {
+        if (!ext.requiredWeaponDefs.NullOrEmpty()) {
             results.AddRange(ext.requiredWeaponDefs);
         }
 
-        if (!ext.requiredWeaponTags.IsNullOrEmpty()) {
-            foreach (var tag in ext.requiredWeaponTags) {
+        if (!ext.requiredWeaponTags.NullOrEmpty()) {
+            foreach (var tag in ext.requiredWeaponTags!) {
                 if (WeaponsByTag.TryGetValue(tag, out var weapons)) {
                     results.AddRange(weapons);
                 }
             }
         }
 
-        if (!ext.excludeWeaponDefs.IsNullOrEmpty()) {
-            results.ExceptWith(ext.excludeWeaponDefs);
+        if (!ext.excludeWeaponDefs.NullOrEmpty()) {
+            results.ExceptWith(ext.excludeWeaponDefs!);
         }
 
-        if (!ext.excludeWeaponTags.IsNullOrEmpty()) {
-            foreach (var tag in ext.excludeWeaponTags) {
+        if (!ext.excludeWeaponTags.NullOrEmpty()) {
+            foreach (var tag in ext.excludeWeaponTags!) {
                 if (WeaponsByTag.TryGetValue(tag, out var weaponsToExclude)) {
                     results.ExceptWith(weaponsToExclude);
                 }

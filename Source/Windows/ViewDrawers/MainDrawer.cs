@@ -1,7 +1,5 @@
 using System.Text;
 using UnityEngine;
-using RimWorld;
-using Verse;
 using CWF.Extensions;
 
 namespace CWF.ViewDrawers;
@@ -119,11 +117,11 @@ public class MainDrawer(ModificationSession session, Action<PartDef, WeaponTrait
         var moduleGraphicData = session.PreviewWeapon.TryGetComp<CompDynamicGraphic>()
             ?.GetGraphicDataFor(installedTrait);
 
-        if (moduleGraphicData != null && !moduleGraphicData.texturePath.IsNullOrEmpty()) {
+        if (moduleGraphicData != null && !moduleGraphicData.texturePath.NullOrEmpty()) {
             return moduleGraphicData;
         }
 
-        if (part.fallbackTexturePath.IsNullOrEmpty()) return null;
+        if (part.fallbackTexturePath.NullOrEmpty()) return null;
 
         return new ModuleGraphicData {
             texturePath = part.fallbackTexturePath

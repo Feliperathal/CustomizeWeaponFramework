@@ -2,9 +2,7 @@ using JetBrains.Annotations;
 using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
-using RimWorld;
 using RimWorld.Utility;
-using Verse;
 using Verse.Sound;
 
 namespace CWF;

@@ -1,6 +1,4 @@
 using UnityEngine;
-using RimWorld;
-using Verse;
 using CWF.Extensions;
 
 namespace CWF;
@@ -115,7 +113,7 @@ public class CompDynamicGraphic : ThingComp {
                 }
 
                 // module
-                if (graphicToRender.texturePath.IsNullOrEmpty()) continue;
+                if (graphicToRender.texturePath.NullOrEmpty()) continue;
                 var moduleTexture = ContentFinder<Texture2D>.Get(graphicToRender.texturePath, false);
                 if (moduleTexture == null) continue;
 

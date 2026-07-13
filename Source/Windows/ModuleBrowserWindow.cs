@@ -1,7 +1,5 @@
 using System.Text;
 using UnityEngine;
-using RimWorld;
-using Verse;
 using Verse.Sound;
 using CWF.Extensions;
 

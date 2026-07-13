@@ -1,6 +1,4 @@
 ﻿using System.Text;
-using RimWorld;
-using Verse;
 using CWF.Extensions;
 
 namespace CWF;
@@ -72,7 +70,7 @@ public class TraitEquippedOffsets : StatPart {
             }
         }
 
-        if (targetStats.IsNullOrEmpty()) {
+        if (targetStats.NullOrEmpty()) {
             Log.Warning("[CWF] No suitable StatDefs found to inject TraitEquippedOffsets.");
             return;
         }
@@ -91,10 +89,9 @@ public class TraitEquippedOffsets : StatPart {
         if (!req.HasThing || req.Thing is not Pawn pawn) return false;
 
         var weapon = pawn.equipment?.Primary;
-        if (weapon == null) return false;
 
-        var traits = weapon.TryGetComp<CompDynamicTraits>()?.Traits;
-        if (traits.IsNullOrEmpty()) return false;
+        var traits = weapon?.TryGetComp<CompDynamicTraits>()?.Traits;
+        if (traits is not { Count: > 1 }) return false;
 
         var list = traits
             .Where(trait => trait.equippedStatOffsets?

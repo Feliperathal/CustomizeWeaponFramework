@@ -1,16 +1,16 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using RimWorld;
 using UnityEngine;
-using Verse;
 
 namespace CWF.Extensions;
 
 internal static class Extensions {
+    [Obsolete("Please use NullOrEmpty instead of this method.")]
     internal static bool IsNullOrEmpty([NotNullWhen(false)] this string? str) {
         return string.IsNullOrEmpty(str);
     }
 
+    [Obsolete("Please use NullOrEmpty instead of this method.")]
     internal static bool IsNullOrEmpty<T>([NotNullWhen(false)] this IReadOnlyCollection<T>? collection) {
         return collection == null || collection.Count == 0;
     }
@@ -24,28 +24,28 @@ internal static class Extensions {
                 return false;
             }
 
-            if (!ext.excludeWeaponTags.IsNullOrEmpty() && !weaponDef.weaponTags.IsNullOrEmpty() &&
+            if (!ext.excludeWeaponTags.NullOrEmpty() && !weaponDef.weaponTags.NullOrEmpty() &&
                 ext.excludeWeaponTags.Any(t => weaponDef.weaponTags.Contains(t))) {
                 return false;
             }
 
-            if (!ext.requiredWeaponDefs.IsNullOrEmpty() && ext.requiredWeaponDefs.Contains(weaponDef)) {
+            if (!ext.requiredWeaponDefs.NullOrEmpty() && ext.requiredWeaponDefs!.Contains(weaponDef)) {
                 return true;
             }
 
-            if (!ext.requiredWeaponTags.IsNullOrEmpty() && !weaponDef.weaponTags.IsNullOrEmpty() &&
+            if (!ext.requiredWeaponTags.NullOrEmpty() && !weaponDef.weaponTags.NullOrEmpty() &&
                 ext.requiredWeaponTags.Any(tag => weaponDef.weaponTags.Contains(tag))) {
                 return true;
             }
 
-            return ext.requiredWeaponDefs.IsNullOrEmpty() && ext.requiredWeaponTags.IsNullOrEmpty();
+            return ext.requiredWeaponDefs.NullOrEmpty() && ext.requiredWeaponTags.NullOrEmpty();
         }
 
         internal float GetRarityWeight() {
             return Settings.Current.GetRarityWeight(moduleDef.GetRarity());
         }
 
-        internal Rarity GetRarity() {
+        private Rarity GetRarity() {
             var ext = moduleDef.GetModExtension<TraitModuleExtension>();
             if (ext == null) {
                 throw new InvalidOperationException(
@@ -55,21 +55,19 @@ internal static class Extensions {
             return ext.rarity;
         }
 
-        internal string GetRarityLabel() {
-            return moduleDef.GetRarity() switch {
-                Rarity.Standard => "CWF_Rarity_Standard".Translate(),
-                Rarity.Rare => "CWF_Rarity_Rare".Translate(),
-                Rarity.Legendary => "CWF_Rarity_Legendary".Translate(),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
+        internal string GetRarityLabel() => moduleDef.GetRarity() switch {
+            Rarity.Standard => "CWF_Rarity_Standard".Translate(),
+            Rarity.Rare => "CWF_Rarity_Rare".Translate(),
+            Rarity.Legendary => "CWF_Rarity_Legendary".Translate(),
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 
     extension(WeaponTraitDef traitDef) {
         internal string GetTraitEffect() {
             var sb = new StringBuilder();
 
-            if (!traitDef.statOffsets.IsNullOrEmpty()) {
+            if (!traitDef.statOffsets.NullOrEmpty()) {
                 foreach (var modifier in traitDef.statOffsets) {
                     if (modifier.stat == StatDefOf.MarketValue || modifier.stat == StatDefOf.Mass) continue;
 
@@ -79,7 +77,7 @@ internal static class Extensions {
                 }
             }
 
-            if (!traitDef.statFactors.IsNullOrEmpty()) {
+            if (!traitDef.statFactors.NullOrEmpty()) {
                 foreach (var modifier in traitDef.statFactors) {
                     sb.AppendLine($" - {modifier.stat.LabelCap}: " +
                                   modifier.stat.Worker.ValueToString(modifier.value, false,
@@ -105,7 +103,7 @@ internal static class Extensions {
                                   ToStringNumberSense.Offset));
             }
 
-            if (!traitDef.equippedStatOffsets.IsNullOrEmpty()) {
+            if (!traitDef.equippedStatOffsets.NullOrEmpty()) {
                 foreach (var modifier in traitDef.equippedStatOffsets) {
                     sb.AppendLine($" - {modifier.stat.LabelCap}: {modifier.stat.ValueToString(modifier.value)}");
                 }

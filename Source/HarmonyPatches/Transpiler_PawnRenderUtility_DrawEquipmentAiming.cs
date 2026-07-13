@@ -1,7 +1,6 @@
 using JetBrains.Annotations;
 using System.Reflection.Emit;
 using HarmonyLib;
-using Verse;
 
 namespace CWF.HarmonyPatches;
 
