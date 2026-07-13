@@ -16,7 +16,7 @@ public class ConfigWindow : Mod {
         RefreshWeightBuffers();
     }
 
-    public override string SettingsCategory() => "Customize Weapon";
+    public override string SettingsCategory() => "CWF_SettingsCategory".Translate();
 
     public override void DoSettingsWindowContents(Rect inRect) {
         var listing = new Listing_Standard();

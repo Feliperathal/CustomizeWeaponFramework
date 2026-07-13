@@ -30,6 +30,7 @@
   <CWF_NoWorkbenchToCraftModule>Нет подходящего верстака для создания {MODULE_label}</CWF_NoWorkbenchToCraftModule>
   <CWF_BillAdded>Добавлен заказ: {MODULE_label} ({BENCH_label})</CWF_BillAdded>
 
+  <CWF_SettingsCategory>Настройки оружия</CWF_SettingsCategory>
   <CWF_Parts>Части</CWF_Parts>
   <CWF_CompatibleModules>Совместимые модули</CWF_CompatibleModules>
   <CWF_BrowseCompatibleModules>Просмотреть совместимые модули</CWF_BrowseCompatibleModules>
