@@ -41,9 +41,14 @@ internal static class Extensions {
             return ext.requiredWeaponDefs.NullOrEmpty() && ext.requiredWeaponTags.NullOrEmpty();
         }
 
-        internal float GetRarityWeight() {
-            return Settings.Current.GetRarityWeight(moduleDef.GetRarity());
-        }
+        internal float GetRarityWeight() => Settings.Current.GetRarityWeight(moduleDef.GetRarity());
+
+        internal string GetRarityLabel() => moduleDef.GetRarity() switch {
+            Rarity.Standard => "CWF_Rarity_Standard".Translate(),
+            Rarity.Rare => "CWF_Rarity_Rare".Translate(),
+            Rarity.Legendary => "CWF_Rarity_Legendary".Translate(),
+            _ => throw new ArgumentOutOfRangeException()
+        };
 
         private Rarity GetRarity() {
             var ext = moduleDef.GetModExtension<TraitModuleExtension>();
@@ -54,13 +59,6 @@ internal static class Extensions {
 
             return ext.rarity;
         }
-
-        internal string GetRarityLabel() => moduleDef.GetRarity() switch {
-            Rarity.Standard => "CWF_Rarity_Standard".Translate(),
-            Rarity.Rare => "CWF_Rarity_Rare".Translate(),
-            Rarity.Legendary => "CWF_Rarity_Legendary".Translate(),
-            _ => throw new ArgumentOutOfRangeException()
-        };
     }
 
     extension(WeaponTraitDef traitDef) {
@@ -112,9 +110,7 @@ internal static class Extensions {
             return sb.ToString();
         }
 
-        internal bool TryGetPart(out PartDef part) {
-            return ModuleDatabase.TryGetPart(traitDef, out part);
-        }
+        internal bool TryGetPart(out PartDef part) => ModuleDatabase.TryGetPart(traitDef, out part);
 
         internal bool TryGetModuleDef([NotNullWhen(true)] out ThingDef? moduleDef) {
             return ModuleDatabase.TryGetModuleDef(traitDef, out moduleDef);
