@@ -16,7 +16,7 @@ public class CompAbilityProvider : ThingComp {
     private List<CompProperties_EquippableAbilityReloadable> _abilityPropsToManage = [];
     private List<AbilityState> _abilityStates = [];
 
-    private Pawn? CurrentHolder => parent.ParentHolder is Pawn_EquipmentTracker { pawn: not null } equipmentTracker
+    private Pawn? CurrentHolder => parent.ParentHolder is Pawn_EquipmentTracker equipmentTracker
         ? equipmentTracker.pawn
         : null;
 

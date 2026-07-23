@@ -71,7 +71,6 @@ public static class ModuleDatabase {
 
     private static IEnumerable<ThingDef> GetCompatibleWeaponDefsFor(ThingDef moduleDef) {
         var ext = moduleDef.GetModExtension<TraitModuleExtension>();
-        if (ext == null) yield break;
 
         var results = new HashSet<ThingDef>();
 

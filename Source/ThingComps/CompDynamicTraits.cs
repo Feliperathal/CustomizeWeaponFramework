@@ -75,7 +75,7 @@ public class CompDynamicTraits : ThingComp {
             availableEmptyParts.Remove(randomPart);
 
             var compatibleModules = ModuleDatabase.AllModuleDefs
-                .Where(moduleDef => moduleDef.GetModExtension<TraitModuleExtension>()?.part == randomPart)
+                .Where(moduleDef => moduleDef.GetModExtension<TraitModuleExtension>().part == randomPart)
                 .Where(moduleDef => moduleDef.IsCompatibleWith(parent.def))
                 .ToList();
 
@@ -89,11 +89,7 @@ public class CompDynamicTraits : ThingComp {
                 continue;
             }
 
-            var traitToInstall = moduleToInstall.GetModExtension<TraitModuleExtension>()?.weaponTraitDef;
-            if (traitToInstall == null) {
-                Log.Error($"[CWF] Module '{moduleToInstall.defName}' is missing its weapon trait definition.");
-                continue;
-            }
+            var traitToInstall = moduleToInstall.GetModExtension<TraitModuleExtension>().weaponTraitDef;
 
             InstallTrait(randomPart, traitToInstall);
         }
@@ -368,7 +364,7 @@ public class CompDynamicTraits : ThingComp {
         if (parent.Map != null) {
             // ground graphic dirty
             parent.Map.mapDrawer.MapMeshDirty(parent.Position, MapMeshFlagDefOf.Things);
-        } else if (parent.ParentHolder is Pawn_EquipmentTracker { pawn: not null } equipmentTracker) {
+        } else if (parent.ParentHolder is Pawn_EquipmentTracker equipmentTracker) {
             // equipment graphic dirty
             equipmentTracker.pawn.Drawer.renderer.SetAllGraphicsDirty();
         }

@@ -14,9 +14,9 @@ public static class Postfix_CompEquippable_CompGetEquippedGizmosExtra {
         }
 
         if (__instance.parent.TryGetComp<CompDynamicTraits>() is not { } comp) yield break;
-        if (__instance.parent.ParentHolder is not Pawn_EquipmentTracker { pawn: { } pawn }) yield break;
+        if (__instance.parent.ParentHolder is not Pawn_EquipmentTracker equipmentTracker) yield break;
 
-        foreach (var extraGizmo in comp.CompGetEquippedGizmosExtra(pawn)) {
+        foreach (var extraGizmo in comp.CompGetEquippedGizmosExtra(equipmentTracker.pawn)) {
             yield return extraGizmo;
         }
     }

@@ -70,7 +70,7 @@ public class TraitEquippedOffsets : StatPart {
             }
         }
 
-        if (targetStats.NullOrEmpty()) {
+        if (targetStats.Count == 0) {
             Log.Warning("[CWF] No suitable StatDefs found to inject TraitEquippedOffsets.");
             return;
         }
@@ -86,12 +86,12 @@ public class TraitEquippedOffsets : StatPart {
     // helper
     private bool TryGetApplicableTraits(StatRequest req, out IReadOnlyList<WeaponTraitDef> applicableTraits) {
         applicableTraits = [];
-        if (!req.HasThing || req.Thing is not Pawn pawn) return false;
+        if (req.Thing is not Pawn pawn) return false;
 
         var weapon = pawn.equipment?.Primary;
 
         var traits = weapon?.TryGetComp<CompDynamicTraits>()?.Traits;
-        if (traits is not { Count: > 1 }) return false;
+        if (traits == null) return false;
 
         var list = traits
             .Where(trait => trait.equippedStatOffsets?

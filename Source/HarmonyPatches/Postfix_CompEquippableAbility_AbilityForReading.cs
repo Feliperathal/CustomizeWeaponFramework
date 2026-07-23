@@ -16,8 +16,7 @@ public static class Postfix_CompEquippableAbility_AbilityForReading {
         var props = __instance.props as CompProperties_EquippableAbility;
         var expectedAbilityDef = props?.abilityDef;
 
-        if ((__result == null || __result.def == expectedAbilityDef) &&
-            (__result == null || expectedAbilityDef != null)) return;
+        if (__result == null || __result.def == expectedAbilityDef) return;
 
         if (AbilityField != null) {
             AbilityField.SetValue(__instance, null);
