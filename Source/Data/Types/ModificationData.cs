@@ -18,3 +18,37 @@ public enum ModificationType {
     Install,
     Uninstall
 }
+
+internal static class ModificationOperations {
+    internal static bool HasRequiredModules(Pawn pawn, List<ModificationData> modifications) {
+        return modifications
+            .Where(modification => modification.Type == ModificationType.Install)
+            .All(modification => pawn.inventory.innerContainer
+                .Any(thing => thing.def == modification.ModuleDef));
+    }
+
+    internal static void Apply(CompDynamicTraits comp, Pawn pawn, List<ModificationData> modifications,
+        bool addUninstalledModulesToInventory) {
+        foreach (var modification in
+                 modifications.Where(modification => modification.Type == ModificationType.Uninstall)) {
+            comp.UninstallTrait(modification.Part);
+            var module = ThingMaker.MakeThing(modification.ModuleDef);
+            if (!addUninstalledModulesToInventory || !pawn.inventory.innerContainer.TryAdd(module)) {
+                GenPlace.TryPlaceThing(module, pawn.Position, pawn.Map, ThingPlaceMode.Near);
+            }
+        }
+
+        foreach (var modification in
+                 modifications.Where(modification => modification.Type == ModificationType.Install)) {
+            var module = pawn.inventory.innerContainer.FirstOrDefault(thing => thing.def == modification.ModuleDef);
+            if (module == null) {
+                Log.Error(
+                    $"[CWF] '{modification.ModuleDef.defName}' missing in FinishAction despite passing EndCondition.");
+                continue;
+            }
+
+            comp.InstallTrait(modification.Part, modification.Trait);
+            module.SplitOff(1).Destroy();
+        }
+    }
+}

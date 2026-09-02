@@ -75,12 +75,9 @@ public class JobDriver_ModifyWeaponHaul : JobDriver {
         finalToil.AddEndCondition(() => {
             if (_modDataList.NullOrEmpty()) return JobCondition.Ongoing;
 
-            return _modDataList!
-                .Where(modData => modData.Type == ModificationType.Install)
-                .Any(modData => pawn.inventory.innerContainer
-                    .All(t => t.def != modData.ModuleDef))
-                ? JobCondition.Incompletable
-                : JobCondition.Ongoing;
+            return ModificationOperations.HasRequiredModules(pawn, _modDataList!)
+                ? JobCondition.Ongoing
+                : JobCondition.Incompletable;
         });
 
         finalToil.AddFinishAction(() => {
@@ -89,7 +86,7 @@ public class JobDriver_ModifyWeaponHaul : JobDriver {
             var comp = Weapon.TryGetComp<CompDynamicTraits>();
             if (comp == null || _modDataList == null) return;
 
-            PerformModifications(comp, _modDataList);
+            ModificationOperations.Apply(comp, pawn, _modDataList, addUninstalledModulesToInventory: false);
 
             Messages.Message("CWF_ModificationComplete"
                     .Translate(pawn.Named("PAWN"), Weapon.Named("WEAPON")),
@@ -117,25 +114,4 @@ public class JobDriver_ModifyWeaponHaul : JobDriver {
         }
     }
 
-    // helper
-    private void PerformModifications(CompDynamicTraits comp, List<ModificationData> modList) {
-        // uninstall
-        foreach (var modData in modList.Where(md => md.Type == ModificationType.Uninstall)) {
-            comp.UninstallTrait(modData.Part);
-            var moduleThing = ThingMaker.MakeThing(modData.ModuleDef);
-            GenPlace.TryPlaceThing(moduleThing, pawn.Position, pawn.Map, ThingPlaceMode.Near);
-        }
-
-        // install
-        foreach (var modData in modList.Where(md => md.Type == ModificationType.Install)) {
-            var moduleToUse = pawn.inventory.innerContainer.FirstOrDefault(t => t.def == modData.ModuleDef);
-
-            if (moduleToUse != null) {
-                comp.InstallTrait(modData.Part, modData.Trait);
-                moduleToUse.SplitOff(1).Destroy();
-            } else {
-                Log.Error($"[CWF] '{modData.ModuleDef.defName}' missing in FinishAction despite passing EndCondition.");
-            }
-        }
-    }
 }

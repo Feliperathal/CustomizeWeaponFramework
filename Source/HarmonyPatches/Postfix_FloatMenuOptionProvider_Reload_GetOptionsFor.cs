@@ -21,11 +21,10 @@ public static class Postfix_FloatMenuOptionProvider_Reload_GetOptionsFor {
             yield break;
         }
 
-        foreach (var reloadable in abilityProvider.GetReloadablesUsingResource(clickedThing.def, allowForcedReload: true)) {
+        foreach (var reloadable in abilityProvider.GetReloadablesNeeding(clickedThing.def,
+                     allowForcedReload: true)) {
             var resourceDef = reloadable.AmmoDef;
-            if (resourceDef == null) {
-                continue;
-            }
+            if (resourceDef == null) continue;
 
             var text = "Reload".Translate(reloadable.ReloadableThing.Named("GEAR"), resourceDef.Named("AMMO")) +
                        $" ({reloadable.AbilityLabel}: {reloadable.LabelRemaining})";
@@ -47,23 +46,16 @@ public static class Postfix_FloatMenuOptionProvider_Reload_GetOptionsFor {
                 continue;
             }
 
-            if (pawn.carryTracker.AvailableStackSpace(resourceDef) < reloadable.MinAmmoNeeded(allowForcedReload: true)) {
+            if (pawn.carryTracker.AvailableStackSpace(resourceDef) <
+                reloadable.MinAmmoNeeded(allowForcedReload: true)) {
                 yield return new FloatMenuOption(
                     text + ": " + "ReloadCannotCarryEnough".Translate(resourceDef.Named("AMMO")), null);
                 continue;
             }
 
             var action = new Action(() => {
-                var job = JobMaker.MakeJob(DefDatabase<JobDef>.GetNamed("CWF_ReloadAbility"),
-                    reloadable.ReloadableThing);
-                job.targetQueueB = chosenResources.Select(thing => new LocalTargetInfo(thing)).ToList();
-                job.count = Math.Min(chosenResources.Sum(thing => thing.stackCount),
-                    reloadable.MaxAmmoNeeded(allowForcedReload: true));
-                job.source = new ReloadAbilityJobSource { AbilityDef = reloadable.AbilityDef };
-                job.playerForced = true;
                 pawn.jobs.TryTakeOrderedJob(
-                    job,
-                    JobTag.Misc);
+                    ReloadAbilityJobSource.Create(reloadable, chosenResources, playerForced: true), JobTag.Misc);
             });
 
             yield return

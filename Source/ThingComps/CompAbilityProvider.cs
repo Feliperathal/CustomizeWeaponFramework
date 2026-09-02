@@ -83,7 +83,7 @@ public class CompAbilityProvider : ThingComp {
 
     public bool IsEquippedBy(Pawn pawn) => CurrentHolder == pawn;
 
-    public IEnumerable<ReloadableAbility> GetReloadablesUsingResource(ThingDef resourceDef, bool allowForcedReload) {
+    public IEnumerable<ReloadableAbility> GetReloadablesNeeding(ThingDef resourceDef, bool allowForcedReload) {
         foreach (var reloadable in Reloadables) {
             if (reloadable.AmmoDef == resourceDef && reloadable.NeedsReload(allowForcedReload)) {
                 yield return reloadable;

@@ -25,20 +25,14 @@ public static class Postfix_JobGiver_Reload_TryGiveJob {
                 continue;
             }
 
-            if (pawn.carryTracker.AvailableStackSpace(resourceDef) < reloadable.MinAmmoNeeded(allowForcedReload: true)) {
+            if (pawn.carryTracker.AvailableStackSpace(resourceDef) <
+                reloadable.MinAmmoNeeded(allowForcedReload: true)) {
                 continue;
             }
 
             var chosenResources = ReloadableUtility.FindEnoughAmmo(pawn, pawn.Position, reloadable, forceReload: false);
             if (!chosenResources.NullOrEmpty()) {
-                var job = JobMaker.MakeJob(DefDatabase<JobDef>.GetNamed("CWF_ReloadAbility"),
-                    reloadable.ReloadableThing);
-                job.targetQueueB = chosenResources.Select(thing => new LocalTargetInfo(thing)).ToList();
-                job.count = Math.Min(chosenResources.Sum(thing => thing.stackCount),
-                    reloadable.MaxAmmoNeeded(allowForcedReload: true));
-                job.source = new ReloadAbilityJobSource { AbilityDef = reloadable.AbilityDef };
-                job.playerForced = false;
-                return job;
+                return ReloadAbilityJobSource.Create(reloadable, chosenResources, playerForced: false);
             }
         }
 
