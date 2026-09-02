@@ -66,7 +66,7 @@ public class ModificationSession {
     public List<ModificationData> CalculateNetChanges() {
         var changes = new List<ModificationData>();
 
-        foreach (var part in DefDatabase<PartDef>.AllDefs) {
+        foreach (var part in InitialTraits.Keys.Union(_desiredTraits.Keys)) {
             InitialTraits.TryGetValue(part, out var initialTrait);
             _desiredTraits.TryGetValue(part, out var finalTrait);
             if (initialTrait == finalTrait) continue;

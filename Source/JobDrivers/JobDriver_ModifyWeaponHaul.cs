@@ -60,8 +60,7 @@ public class JobDriver_ModifyWeaponHaul : JobDriver {
                 .GotoThing(ModuleToHaulInd, PathEndMode.ClosestTouch)
                 .FailOnDespawnedNullOrForbidden(ModuleToHaulInd);
 
-            yield return Toils_General.Do(TryCarryCurrentModule);
-            yield return Toils_General.Do(MoveCarriedModuleToInventory);
+            yield return Toils_Haul.TakeToInventory(ModuleToHaulInd, 1);
 
             yield return Toils_Jump.JumpIfHaveTargetInQueue(ModuleToHaulInd, haulLoop);
         }
@@ -97,21 +96,4 @@ public class JobDriver_ModifyWeaponHaul : JobDriver {
 
         yield return finalToil;
     }
-
-    private void TryCarryCurrentModule() {
-        var thingToCarry = job.GetTarget(ModuleToHaulInd).Thing;
-        if (thingToCarry == null || thingToCarry.Destroyed || thingToCarry.stackCount <= 0) {
-            return;
-        }
-
-        pawn.carryTracker.TryStartCarry(thingToCarry, 1);
-    }
-
-    private void MoveCarriedModuleToInventory() {
-        var carriedThing = pawn.carryTracker.CarriedThing;
-        if (carriedThing != null) {
-            pawn.inventory.innerContainer.TryAddOrTransfer(carriedThing);
-        }
-    }
-
 }

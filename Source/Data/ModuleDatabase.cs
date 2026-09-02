@@ -1,3 +1,5 @@
+using CWF.Extensions;
+
 namespace CWF;
 
 public static class ModuleDatabase {
@@ -46,11 +48,8 @@ public static class ModuleDatabase {
             moduleDef.description = traitDef.description;
 
             // inject hyperlinks
-            var weaponDefs = GetCompatibleWeaponDefsFor(moduleDef).ToArray();
-            if (weaponDefs.NullOrEmpty()) continue;
-
-            moduleDef.descriptionHyperlinks ??= [];
-            foreach (var weaponDef in weaponDefs) {
+            foreach (var weaponDef in GetCompatibleWeaponDefsFor(moduleDef)) {
+                moduleDef.descriptionHyperlinks ??= [];
                 if (moduleDef.descriptionHyperlinks.Any(h => h.def == weaponDef)) continue;
 
                 moduleDef.descriptionHyperlinks.Add(new DefHyperlink(weaponDef));
@@ -71,36 +70,15 @@ public static class ModuleDatabase {
 
     private static IEnumerable<ThingDef> GetCompatibleWeaponDefsFor(ThingDef moduleDef) {
         var ext = moduleDef.GetModExtension<TraitModuleExtension>();
+        var candidates = new HashSet<ThingDef>(ext.requiredWeaponDefs ?? []);
 
-        var results = new HashSet<ThingDef>();
-
-        if (!ext.requiredWeaponDefs.NullOrEmpty()) {
-            results.AddRange(ext.requiredWeaponDefs);
-        }
-
-        if (!ext.requiredWeaponTags.NullOrEmpty()) {
-            foreach (var tag in ext.requiredWeaponTags!) {
-                if (WeaponsByTag.TryGetValue(tag, out var weapons)) {
-                    results.AddRange(weapons);
-                }
+        foreach (var tag in ext.requiredWeaponTags ?? []) {
+            if (WeaponsByTag.TryGetValue(tag, out var weapons)) {
+                candidates.UnionWith(weapons);
             }
         }
 
-        if (!ext.excludeWeaponDefs.NullOrEmpty()) {
-            results.ExceptWith(ext.excludeWeaponDefs!);
-        }
-
-        if (!ext.excludeWeaponTags.NullOrEmpty()) {
-            foreach (var tag in ext.excludeWeaponTags!) {
-                if (WeaponsByTag.TryGetValue(tag, out var weaponsToExclude)) {
-                    results.ExceptWith(weaponsToExclude);
-                }
-            }
-        }
-
-        foreach (var weaponDef in results) {
-            yield return weaponDef;
-        }
+        return candidates.Where(weaponDef => moduleDef.IsCompatibleWith(weaponDef));
     }
 
     #endregion

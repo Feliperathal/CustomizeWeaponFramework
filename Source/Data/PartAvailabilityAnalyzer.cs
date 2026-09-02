@@ -18,8 +18,7 @@ public static class PartAvailabilityAnalyzer {
         var moduleCache = new Dictionary<PartDef, ThingDef>();
 
         foreach (var (part, trait) in desiredTraits) {
-            if (!supportedParts.Contains(part)
-                || !trait.TryGetPart(out var expectedPart)
+            if (!trait.TryGetPart(out var expectedPart)
                 || expectedPart != part
                 || !trait.TryGetModuleDef(out var moduleDef)
                 || !moduleDef.IsCompatibleWith(weapon.def)) {

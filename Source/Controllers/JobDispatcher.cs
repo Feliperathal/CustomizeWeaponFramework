@@ -56,6 +56,7 @@ public class JobDispatcher(Thing weapon) {
 
         // create a big job merged all modification
         var job = JobMaker.MakeJob(DefDatabase<JobDef>.GetNamed("CWF_ModifyWeaponHaul"), weapon);
+        job.count = 1;
 
         // fill queue only when it needs haul
         if (Enumerable.Any(modulesToHaul)) {
