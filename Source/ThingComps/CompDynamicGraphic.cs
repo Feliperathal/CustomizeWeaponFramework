@@ -4,6 +4,10 @@ using CWF.Extensions;
 namespace CWF;
 
 public class CompDynamicGraphic : ThingComp {
+    private static readonly bool UsesWaylithRenderer = AppDomain.CurrentDomain.GetAssemblies()
+        .Any(assembly => (assembly.GetName().Name ?? string.Empty)
+            .IndexOf("Waylith", StringComparison.OrdinalIgnoreCase) >= 0);
+
     private CompProperties_DynamicGraphic Props => (CompProperties_DynamicGraphic)props;
 
     private Graphic? _cachedGraphic;
@@ -151,56 +155,61 @@ public class CompDynamicGraphic : ThingComp {
         var shiftX = -minX;
         var shiftY = -minY;
 
-        var renderTexture = RenderTexture.GetTemporary(renderWidth, renderHeight, 0, RenderTextureFormat.ARGB32);
+        Texture2D finalBakedTexture;
+        if (UsesWaylithRenderer) {
+            finalBakedTexture = BakeLayersWaylith(layersToDraw, renderWidth, renderHeight,
+                fallbackHeight, shiftX, shiftY);
+        } else {
+            var renderTexture = RenderTexture.GetTemporary(renderWidth, renderHeight, 0, RenderTextureFormat.ARGB32);
 
-        RenderTexture.active = renderTexture;
-        GL.Clear(true, true, Color.clear);
-        GL.PushMatrix();
-        GL.LoadPixelMatrix(0, renderTexture.width, renderTexture.height, 0);
+            RenderTexture.active = renderTexture;
+            GL.Clear(true, true, Color.clear);
+            GL.PushMatrix();
+            GL.LoadPixelMatrix(0, renderTexture.width, renderTexture.height, 0);
 
-        Material? tempMaterial = null;
+            Material? tempMaterial = null;
 
-        foreach (var layer in layersToDraw) {
-            var scaledWidth = layer.texture.width * layer.scale;
-            var scaledHeight = layer.texture.height * layer.scale;
+            foreach (var layer in layersToDraw) {
+                var scaledWidth = layer.texture.width * layer.scale;
+                var scaledHeight = layer.texture.height * layer.scale;
 
-            var x = layer.offset.x + shiftX;
-            var y = ((fallbackHeight - scaledHeight) - layer.offset.y) + shiftY;
+                var x = layer.offset.x + shiftX;
+                var y = ((fallbackHeight - scaledHeight) - layer.offset.y) + shiftY;
 
-            var destRect = new Rect(x, y, scaledWidth, scaledHeight);
+                var destRect = new Rect(x, y, scaledWidth, scaledHeight);
 
-            if (layer.color != Color.white && originalGraphicData.shaderType?.Shader != null) {
-                tempMaterial ??= new Material(originalGraphicData.shaderType.Shader);
-                tempMaterial.color = layer.color;
+                if (layer.color != Color.white && originalGraphicData.shaderType?.Shader != null) {
+                    tempMaterial ??= new Material(originalGraphicData.shaderType.Shader);
+                    tempMaterial.color = layer.color;
 
-                if (tempMaterial.HasProperty(ShaderPropertyIDs.ColorTwo)) {
-                    tempMaterial.SetColor(ShaderPropertyIDs.ColorTwo, layer.color);
+                    if (tempMaterial.HasProperty(ShaderPropertyIDs.ColorTwo)) {
+                        tempMaterial.SetColor(ShaderPropertyIDs.ColorTwo, layer.color);
+                    }
+
+                    if (tempMaterial.HasProperty(ShaderPropertyIDs.MaskTex)) {
+                        tempMaterial.SetTexture(ShaderPropertyIDs.MaskTex, layer.maskTexture);
+                    }
+
+                    Graphics.DrawTexture(destRect, layer.texture, tempMaterial);
+                } else {
+                    Graphics.DrawTexture(destRect, layer.texture);
                 }
-
-                if (tempMaterial.HasProperty(ShaderPropertyIDs.MaskTex)) {
-                    tempMaterial.SetTexture(ShaderPropertyIDs.MaskTex, layer.maskTexture);
-                }
-
-                Graphics.DrawTexture(destRect, layer.texture, tempMaterial);
-            } else {
-                Graphics.DrawTexture(destRect, layer.texture);
             }
+
+            if (tempMaterial != null) {
+                UnityEngine.Object.Destroy(tempMaterial);
+            }
+            GL.PopMatrix();
+
+            finalBakedTexture = EnsureBakedTexture(renderTexture.width, renderTexture.height);
+            Graphics.CopyTexture(renderTexture, finalBakedTexture);
+
+            RenderTexture.active = null;
+            RenderTexture.ReleaseTemporary(renderTexture);
         }
 
-        if (tempMaterial != null) {
-            UnityEngine.Object.Destroy(tempMaterial);
-        }
-
-        GL.PopMatrix();
-
-        var finalBakedTexture = EnsureBakedTexture(renderTexture.width, renderTexture.height);
-        Graphics.CopyTexture(renderTexture, finalBakedTexture);
-
-        RenderTexture.active = null;
-        RenderTexture.ReleaseTemporary(renderTexture);
-
-        var drawSizeScaleX = (float)renderTexture.width / fallbackWidth;
-        var drawSizeScaleY = (float)renderTexture.height / fallbackHeight;
+        var drawSizeScaleX = (float)renderWidth / fallbackWidth;
+        var drawSizeScaleY = (float)renderHeight / fallbackHeight;
 
         var adjustedDrawSize = new Vector2(
             originalGraphicData.drawSize.x * drawSizeScaleX,
@@ -231,6 +240,79 @@ public class CompDynamicGraphic : ThingComp {
 
         return _cachedGraphic;
     }
+
+    private Texture2D BakeLayersWaylith(
+        List<(Texture2D texture, Vector2 offset, float scale, int sortOrder, Color color,Texture2D? maskTexture)> layers,
+        int width, int height, int fallbackHeight, float shiftX, float shiftY) {
+
+        var destination = new Color32[width * height];
+        var sourcePixels = new Dictionary<Texture2D, Color32[]>();
+
+        foreach (var layer in layers) {
+            if (!sourcePixels.TryGetValue(layer.texture, out var source)) {
+                source = layer.texture.GetPixels32();
+                sourcePixels.Add(layer.texture, source);
+            }
+
+            var scaledWidth = layer.texture.width * layer.scale;
+            var scaledHeight = layer.texture.height * layer.scale;
+            if (scaledWidth <= 0f || scaledHeight <= 0f) continue;
+
+            var left = layer.offset.x + shiftX;
+            var top = fallbackHeight - scaledHeight - layer.offset.y + shiftY;
+            var minDestX = Mathf.Max(0, Mathf.FloorToInt(left));
+            var maxDestX = Mathf.Min(width, Mathf.CeilToInt(left + scaledWidth));
+            var minDestY = Mathf.Max(0, Mathf.FloorToInt(height - top - scaledHeight));
+            var maxDestY = Mathf.Min(height, Mathf.CeilToInt(height - top));
+
+            for (var destY = minDestY; destY < maxDestY; destY++) {
+                var topDownY = height - destY - 0.5f;
+                var sourceV = 1f - (topDownY - top) / scaledHeight;
+                if (sourceV < 0f || sourceV >= 1f) continue;
+
+                var sourceY = Mathf.Clamp(Mathf.FloorToInt(sourceV * layer.texture.height),
+                    0, layer.texture.height - 1);
+
+                for (var destX = minDestX; destX < maxDestX; destX++) {
+                    var sourceU = (destX + 0.5f - left) / scaledWidth;
+                    if (sourceU < 0f || sourceU >= 1f) continue;
+
+                    var sourceX = Mathf.Clamp(Mathf.FloorToInt(sourceU * layer.texture.width),
+                        0, layer.texture.width - 1);
+                    var sourceColor = source[sourceY * layer.texture.width + sourceX];
+                    if (sourceColor.a == 0) continue;
+
+                    var destinationIndex = destY * width + destX;
+                    destination[destinationIndex] = AlphaBlend(destination[destinationIndex], sourceColor,
+                        layer.color);
+                }
+            }
+        }
+
+        var bakedTexture = EnsureBakedTexture(width, height);
+        bakedTexture.SetPixels32(destination);
+        bakedTexture.Apply(false, false);
+        return bakedTexture;
+    }
+
+    private static Color32 AlphaBlend(Color32 destination, Color32 source, Color tint) {
+        var sourceAlpha = source.a / 255f * tint.a;
+        var destinationAlpha = destination.a / 255f;
+        var outputAlpha = sourceAlpha + destinationAlpha * (1f - sourceAlpha);
+        if (outputAlpha <= 0f) return new Color32(0, 0, 0, 0);
+
+        var sourceWeight = sourceAlpha / outputAlpha;
+        var destinationWeight = destinationAlpha * (1f - sourceAlpha) / outputAlpha;
+
+        return new Color32(
+            ToByte(source.r / 255f * tint.r * sourceWeight + destination.r / 255f * destinationWeight),
+            ToByte(source.g / 255f * tint.g * sourceWeight + destination.g / 255f * destinationWeight),
+            ToByte(source.b / 255f * tint.b * sourceWeight + destination.b / 255f * destinationWeight),
+            ToByte(outputAlpha)
+        );
+    }
+
+    private static byte ToByte(float value) => (byte)Mathf.Clamp(Mathf.RoundToInt(value * 255f), 0, 255);
 
     private static Graphic WrapGraphicIfNeeded(Graphic graphic, GraphicData originalGraphicData) {
         if (originalGraphicData.onGroundRandomRotateAngle > 0.01f) {
